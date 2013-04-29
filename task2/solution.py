@@ -1,34 +1,39 @@
+from itertools import starmap
 from collections import OrderedDict
 
 
 def groupby(func, seq):
     dict_result = {}
-    for elem in seq:
-        dict_result.setdefault(func(elem), []).append(elem)
+    for element in seq:
+        dict_result.setdefault(func(element), []).append(element)
     return dict_result
 
 
 def iterate(func):
-    f = lambda x: x
-    compose = lambda y: lambda x: func(y(x))
+    def compose(outer_func, inner_func):
+        return lambda arg: outer_func(inner_func(arg))
+
+    result = lambda arg: arg
     while True:
-        yield f
-        f = compose(f)
+        yield result
+        result = compose(func, result)
 
 
 def zip_with(func, *iterables):
-    return [func(*args) for args in zip(*iterables)]
+    return starmap(func, zip(*iterables))
 
 
 def cache(func, cache_size):
 
-    stored = OrderedDict()
+    if cache_size == 0:
+        return func
+    else:
+        storage = OrderedDict()
 
-    def func_cached(arg):
-        if arg not in stored:
-            result=func(arg)
-            if len(stored) == cache_size:
-                stored.popitem(False)
-            stored[arg] = result
-            return result
+        def func_cached(*args):
+            if args not in storage:
+                if len(storage) == cache_size:
+                    storage.popitem(False)
+                storage[args] = func(*args)
+            return storage[args]
     return func_cached
