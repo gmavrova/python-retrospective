@@ -26,7 +26,7 @@ def cache(func, cache_size):
 
     def func_cached(arg):
         if arg not in stored:
-            result = func(arg)
+            result=func(arg)
             if len(stored) == cache_size:
                 stored.popitem(False)
             stored[arg] = result
